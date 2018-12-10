@@ -18,9 +18,13 @@ app.use((err, req, res, next) => {
     console.error(err.stack)
     res.status(500).send('Something broke!')
 })
+app.use((err, req, res, next) => {
+    console.error(err.stack)
+    res.status(404).send('The page is not found')
+})
 
 
-let url = `https://clubfreetst.herokuapp.com/blogs/`
+let url = `https://clubfreetst.herokuapp.com/`
 let blog = {
     siteId: '',
     blogger: '',
@@ -31,30 +35,41 @@ let errors = []
 
 app.delete('/', (req, res, next) => {
     let id_deleted = req.body.id
-    let urld = url + id_deleted
-
-    request(urld, (error, response, body) => {
-        if (id_deleted.length != 7) {
-            res.send("The note's ID is wrong");
-        }
-        else {
+    let urld = url + "notes/" + id_deleted
+    console.log(urld)
+    if (id_deleted.length != 7) {
+        res.send("The note's ID is wrong");
+    }
+    else {
+        request.delete(urld, (error, response, body) => {
             console.log('statusCode:', response.statusCode);
-            notes__json = JSON.parse(body);
 
-            res.render("./index.ejs", {
-                blog: blog,
-                errors: errors
-            });
-        }
+            if (res.status(200)) {
+                res.render("./index.ejs", {
+                    blog: blog,
+                    errors: errors
+                })
+            }
+            else if (res.status(202)) {
+                res.send('Delete request accepted')
+            }
+            else {
+                res.send('Content not found')
+            }
+        })
 
 
-    })
+
+
+
+
+    }
 })
 
 
 app.post('/', (req, res) => {
     let blogID = req.body.blogID
-    let urlp = url + blogID
+    let urlp = url + "blogs/" + blogID
     let errors = []
     if (!blogID || blogID.length < 5 || blogID.length > 7) {
         errors.push({ error: 'Please add a correct BlogID' })
